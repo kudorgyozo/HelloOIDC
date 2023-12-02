@@ -1,7 +1,11 @@
 using HelloOIDC.Auth;
 using HelloOIDC.Repo;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
 using SQLite;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,14 +24,26 @@ builder.Services.AddCors(options => {
 });
 builder.Services.AddControllers();
 builder.Services.AddSingleton<OIDCRepo>();
-builder.Services.AddSingleton<IAuthorizationHandler, RoleAuthorizationHandler>();
-builder.Services.AddSingleton<IAuthorizationPolicyProvider, RolePolicyProvider>();
+//builder.Services.AddSingleton<IAuthorizationHandler, RoleAuthorizationHandler>();
+//builder.Services.AddSingleton<IAuthorizationPolicyProvider, RolePolicyProvider>();
 
-builder.Services.AddAuthentication()
-    .AddScheme<RoleAuthenticationOpts, RoleAuthenticationHandler>(
-        RoleAuthenticationHandler.SchemeName,
-        opts => { }
-    );
+builder.Services.AddAuthentication(cfg => {
+    cfg.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    cfg.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    cfg.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(cfg => {
+    cfg.TokenValidationParameters = new TokenValidationParameters {
+        //ValidIssuer = "issuer",
+        //ValidAudience = "audience",
+
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("keyasdfasdfasdfasdf")),
+    };
+});
+
 builder.Services.AddAuthorization();
 
 var app = builder.Build();

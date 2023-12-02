@@ -80,6 +80,7 @@ namespace HelloOIDC.Controllers {
             };
 
             var result = await client.ProcessResponseAsync(Request.QueryString.Value, savedState);
+            var res2 = await client.RefreshTokenAsync(result.RefreshToken);
             var userinfo = await client.GetUserInfoAsync(result.AccessToken);
 
             repo.Cleanup();
